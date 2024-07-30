@@ -16,7 +16,7 @@ double Calculaton::multiply(double a, double b) {
 
 double Calculaton::divide(double a, double b) {
     if (b == 0) {
-        throw std::invalid_argument("Division by zero is not allowed.");
+        throw std::invalid_argument("Делить на ноль нунуну");
     }
     return a / b;
 }

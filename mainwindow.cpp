@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -30,24 +29,99 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->pushButton_AC, &QPushButton::clicked, this, [=]{ OnCharButtonClicked('A');});
     connect(ui->pushButtonZPT, &QPushButton::clicked, this, [=]{ OnCharButtonClicked(',');});
 
-
-    int value= 0;
 }
 
-void MainWindow::OnNumberButtonClicked(int value)
-{
-    if(value != 0)
-    {
-        value++;
-        qDebug() << "Button clicked, new value: " << value;
+void MainWindow::OnCharButtonClicked(char simbol) {
+    if (simbol == '=') {
+        double first = parseValue(addFirstValue);
+        double second = parseValue(addSecondValue);
+        double result = 0;
+
+        switch (verifiValueSign) {
+        case '+':
+            result = calculator.add(first, second);
+            break;
+        case '-':
+            result = calculator.subtract(first, second);
+            break;
+        case '*':
+            result = calculator.multiply(first, second);
+            break;
+        case '/':
+            result = calculator.divide(first, second);
+            break;
+        }
+
+
+        currentDisplayText = QString::number(result);
+        ui->Display->setText(currentDisplayText);
+        addFirstValue.clear();
+        addSecondValue.clear();
+        verifiValueSign = '\0';
+
+
+        addFirstValue.append(result);
+
+
+        clearOnNextInput = true;
+
+    } else {
+        verifiValueSign = simbol;
+        currentDisplayText.append(simbol);
+        ui->Display->setText(currentDisplayText);
     }
-}
-
-void MainWindow::OnCharButtonClicked(char simbol)
-{
 
     qDebug() << "Button clicked, new value: " << simbol;
+}
 
+void MainWindow::OnNumberButtonClicked(int value) {
+    // Clear the display if it's flagged to be cleared on the next input
+    if (clearOnNextInput) {
+        currentDisplayText.clear();
+        addFirstValue.clear();
+        addSecondValue.clear();
+        clearOnNextInput = false;
+    }
+
+    if (verifiValueSign == '\0') {
+        addFirstValue.append(value);
+    } else {
+        addSecondValue.append(value);
+    }
+
+    currentDisplayText.append(QString::number(value));
+    ui->Display->setText(currentDisplayText);
+
+    qDebug() << "Number button clicked, new value: " << value;
+}
+
+
+double MainWindow::parseValue(const QVector<int>& values)
+{
+    double result = 0;
+    for (int i = 0; i < values.size(); ++i)
+    {
+        result = result * 10 + values[i];
+    }
+    return result;
+}
+
+void MainWindow::updateDisplay()
+{
+    QString displayText;
+    for (int digit : addFirstValue)
+    {
+        displayText.append(QString::number(digit));
+    }
+    if (verifiValueSign != '\0' && verifiValueSign != '=')
+    {
+        displayText.append(verifiValueSign);
+        for (int digit : addSecondValue)
+        {
+            displayText.append(QString::number(digit));
+        }
+    }
+    ui->Display->setText(displayText);
 }
 
 MainWindow::~MainWindow()
