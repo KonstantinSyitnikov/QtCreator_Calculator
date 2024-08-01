@@ -1,9 +1,15 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
+#include <QtMath>
+#include <QStack>
+#include <stdexcept>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , lastOperationWasEqual(false)
+    , lastInputWasOperator(false)
+    , decimalPointAdded(false)
 {
     ui->setupUi(this);
     connect(ui->pushButtonO, &QPushButton::clicked, this, [=]{ OnNumberButtonClicked(0); });
@@ -25,107 +31,140 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->pushButtonEquals, &QPushButton::clicked, this, [=]{ OnCharButtonClicked('=');});
 
     connect(ui->pushButtonOO, &QPushButton::clicked, this, [=]{ OnNumberButtonClicked(0); });
-    connect(ui->pushButton_Backs, &QPushButton::clicked, this, [=]{ OnCharButtonClicked('<');});
-    connect(ui->pushButton_AC, &QPushButton::clicked, this, [=]{ OnCharButtonClicked('A');});
-    connect(ui->pushButtonZPT, &QPushButton::clicked, this, [=]{ OnCharButtonClicked(',');});
-
+    connect(ui->pushButton_Backs, &QPushButton::clicked, this, [=]{ OnBackspaceClicked(); });
+    connect(ui->pushButtonZPT, &QPushButton::clicked, this, [=]{ OnDecimalPointClicked(); });
+    connect(ui->pushButton_AC, &QPushButton::clicked, [this]() {
+        expression.clear();
+        ui->Display->setText("0");
+        decimalPointAdded = false;
+    });
 }
 
 void MainWindow::OnCharButtonClicked(char simbol) {
     if (simbol == '=') {
-        double first = parseValue(addFirstValue);
-        double second = parseValue(addSecondValue);
-        double result = 0;
-
-        switch (verifiValueSign) {
-        case '+':
-            result = calculator.add(first, second);
-            break;
-        case '-':
-            result = calculator.subtract(first, second);
-            break;
-        case '*':
-            result = calculator.multiply(first, second);
-            break;
-        case '/':
-            result = calculator.divide(first, second);
-            break;
+        if (!lastInputWasOperator) {
+            double result = evaluateExpression(expression);
+            ui->Display->setText(QString::number(result));
+            expression = QString::number(result);
+            lastOperationWasEqual = true;
+            decimalPointAdded = false; // Reset the flag for the new calculation
         }
-
-
-        currentDisplayText = QString::number(result);
-        ui->Display->setText(currentDisplayText);
-        addFirstValue.clear();
-        addSecondValue.clear();
-        verifiValueSign = '\0';
-
-
-        addFirstValue.append(result);
-
-
-        clearOnNextInput = true;
-
     } else {
-        verifiValueSign = simbol;
-        currentDisplayText.append(simbol);
-        ui->Display->setText(currentDisplayText);
+        if (lastOperationWasEqual) {
+            lastOperationWasEqual = false;
+        }
+        if (lastInputWasOperator && (simbol == '+' || simbol == '-' || simbol == '*' || simbol == '/')) {
+            expression.chop(1);
+        }
+        expression.append(simbol);
+        ui->Display->setText(expression);
+        lastInputWasOperator = (simbol == '+' || simbol == '-' || simbol == '*' || simbol == '/');
+        decimalPointAdded = false; // Reset the flag when an operator is added
     }
-
-    qDebug() << "Button clicked, new value: " << simbol;
 }
 
 void MainWindow::OnNumberButtonClicked(int value) {
-    // Clear the display if it's flagged to be cleared on the next input
-    if (clearOnNextInput) {
-        currentDisplayText.clear();
-        addFirstValue.clear();
-        addSecondValue.clear();
-        clearOnNextInput = false;
+    if (lastOperationWasEqual) {
+        expression.clear();
+        lastOperationWasEqual = false;
     }
-
-    if (verifiValueSign == '\0') {
-        addFirstValue.append(value);
-    } else {
-        addSecondValue.append(value);
-    }
-
-    currentDisplayText.append(QString::number(value));
-    ui->Display->setText(currentDisplayText);
-
-    qDebug() << "Number button clicked, new value: " << value;
+    expression.append(QString::number(value));
+    ui->Display->setText(expression);
+    lastInputWasOperator = false;
 }
 
-
-double MainWindow::parseValue(const QVector<int>& values)
-{
-    double result = 0;
-    for (int i = 0; i < values.size(); ++i)
-    {
-        result = result * 10 + values[i];
-    }
-    return result;
-}
-
-void MainWindow::updateDisplay()
-{
-    QString displayText;
-    for (int digit : addFirstValue)
-    {
-        displayText.append(QString::number(digit));
-    }
-    if (verifiValueSign != '\0' && verifiValueSign != '=')
-    {
-        displayText.append(verifiValueSign);
-        for (int digit : addSecondValue)
-        {
-            displayText.append(QString::number(digit));
+void MainWindow::OnBackspaceClicked() {
+    if (!expression.isEmpty()) {
+        if (expression.endsWith('.')) {
+            decimalPointAdded = false; // Reset the flag if a decimal point is removed
+        }
+        expression.chop(1); // Remove the last character
+        if (expression.isEmpty()) {
+            ui->Display->setText("0");
+        } else {
+            ui->Display->setText(expression);
         }
     }
-    ui->Display->setText(displayText);
+    lastInputWasOperator = false;
 }
 
-MainWindow::~MainWindow()
-{
+void MainWindow::OnDecimalPointClicked() {
+    if (!decimalPointAdded) {
+        if (lastOperationWasEqual) {
+            expression.clear();
+            lastOperationWasEqual = false;
+        }
+        if (expression.isEmpty() || lastInputWasOperator) {
+            expression.append("0"); // Append '0' before the decimal point if it's at the start or after an operator
+        }
+        expression.append('.');
+        ui->Display->setText(expression);
+        decimalPointAdded = true; // Set the flag
+        lastInputWasOperator = false;
+    }
+}
+
+double MainWindow::evaluateExpression(const QString& expr) {
+    QStack<double> values;
+    QStack<QChar> ops;
+    QString num;
+    for (int i = 0; i < expr.length(); ++i) {
+        if (expr[i].isDigit() || expr[i] == '.') {
+            num += expr[i];
+        } else {
+            if (!num.isEmpty()) {
+                values.push(num.toDouble());
+                num.clear();
+            }
+            while (!ops.isEmpty() && getPrecedence(ops.top()) >= getPrecedence(expr[i])) {
+                double val2 = values.pop();
+                double val1 = values.pop();
+                QChar op = ops.pop();
+                values.push(applyOperation(val1, val2, op));
+            }
+            ops.push(expr[i]);
+            decimalPointAdded = false; // Reset the flag when an operator is encountered
+        }
+    }
+    if (!num.isEmpty()) {
+        values.push(num.toDouble());
+    }
+    while (!ops.isEmpty()) {
+        double val2 = values.pop();
+        double val1 = values.pop();
+        QChar op = ops.pop();
+        values.push(applyOperation(val1, val2, op));
+    }
+    return values.top();
+}
+
+int MainWindow::getPrecedence(QChar op) {
+    if (op == '+' || op == '-') {
+        return 1;
+    }
+    if (op == '*' || op == '/') {
+        return 2;
+    }
+    return 0;
+}
+
+double MainWindow::applyOperation(double a, double b, QChar op) {
+    switch (op.unicode()) {
+    case '+':
+        return a + b;
+    case '-':
+        return a - b;
+    case '*':
+        return a * b;
+    case '/':
+        if (b == 0) {
+            throw std::runtime_error("Division by zero");
+        }
+        return a / b;
+    }
+    return 0;
+}
+
+MainWindow::~MainWindow() {
     delete ui;
 }
-

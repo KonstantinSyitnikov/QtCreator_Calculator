@@ -9,6 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/username/Документы/CPlusPlus/CalculatorQtCr/build/CalculatorQtCr_autogen/mocs_compilation.cpp" "CMakeFiles/CalculatorQtCr.dir/CalculatorQtCr_autogen/mocs_compilation.cpp.o" "gcc" "CMakeFiles/CalculatorQtCr.dir/CalculatorQtCr_autogen/mocs_compilation.cpp.o.d"
+  "/home/username/Документы/CPlusPlus/CalculatorQtCr/calculaton.cpp" "CMakeFiles/CalculatorQtCr.dir/calculaton.cpp.o" "gcc" "CMakeFiles/CalculatorQtCr.dir/calculaton.cpp.o.d"
   "/home/username/Документы/CPlusPlus/CalculatorQtCr/main.cpp" "CMakeFiles/CalculatorQtCr.dir/main.cpp.o" "gcc" "CMakeFiles/CalculatorQtCr.dir/main.cpp.o.d"
   "/home/username/Документы/CPlusPlus/CalculatorQtCr/mainwindow.cpp" "CMakeFiles/CalculatorQtCr.dir/mainwindow.cpp.o" "gcc" "CMakeFiles/CalculatorQtCr.dir/mainwindow.cpp.o.d"
   )

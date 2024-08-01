@@ -4,6 +4,8 @@ file(REMOVE_RECURSE
   "CalculatorQtCr_autogen"
   "CMakeFiles/CalculatorQtCr.dir/CalculatorQtCr_autogen/mocs_compilation.cpp.o"
   "CMakeFiles/CalculatorQtCr.dir/CalculatorQtCr_autogen/mocs_compilation.cpp.o.d"
+  "CMakeFiles/CalculatorQtCr.dir/calculaton.cpp.o"
+  "CMakeFiles/CalculatorQtCr.dir/calculaton.cpp.o.d"
   "CMakeFiles/CalculatorQtCr.dir/main.cpp.o"
   "CMakeFiles/CalculatorQtCr.dir/main.cpp.o.d"
   "CMakeFiles/CalculatorQtCr.dir/mainwindow.cpp.o"

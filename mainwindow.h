@@ -5,7 +5,9 @@
 #include <QPushButton>
 #include <QVector>
 #include <QDebug>
-#include </home/username/Документы/CPlusPlus/CalculatorQtCr/calculaton.h>
+#include <QString>
+#include <QStack>
+#include <QRegularExpression>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -18,24 +20,23 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
+    bool lastOperationWasEqual;
+    bool lastInputWasOperator;
+    bool decimalPointAdded;
 private slots:
     void OnNumberButtonClicked(int value);
     void OnCharButtonClicked(char simbol);
+    void OnBackspaceClicked();
+    void OnDecimalPointClicked();
 
 private:
     Ui::MainWindow *ui;
-    QVector<int> addFirstValue;
-    QVector<int> addSecondValue;
-    char verifiValueSign = '\0';
-    Calculaton calculator;
+    QString expression; // To store the sequence of numbers and operators
 
-    QString currentDisplayText;
     void updateDisplay();
-
-    double parseValue(const QVector<int>& values);
-    bool clearOnNextInput = false;
-
+    double evaluateExpression(const QString& expr); // Function to evaluate the expression
+    int getPrecedence(QChar op);
+    double applyOperation(double a, double b, QChar op);
 };
 
 #endif // MAINWINDOW_H

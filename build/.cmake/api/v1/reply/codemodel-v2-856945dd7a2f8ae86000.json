@@ -7,7 +7,7 @@
 				{
 					"build" : ".",
 					"hasInstallRule" : true,
-					"jsonFile" : "directory-.-Debug-5fddf25da6df5f351525.json",
+					"jsonFile" : "directory-.-Debug-7b2342c967b58813e4ed.json",
 					"minimumCMakeVersion" : 
 					{
 						"string" : "3.5"
@@ -42,7 +42,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "CalculatorQtCr::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-CalculatorQtCr-Debug-cb74baf33688281febed.json",
+					"jsonFile" : "target-CalculatorQtCr-Debug-3302199e71a9eb488872.json",
 					"name" : "CalculatorQtCr",
 					"projectIndex" : 0
 				},
